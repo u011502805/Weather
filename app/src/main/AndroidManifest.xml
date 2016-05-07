@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="edu.swust.weather">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <!-- 高德定位需要的权限 -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <!-- Bmob -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+
+    <application
+        android:name="edu.swust.weather.application.WeatherApplication"
+        android:allowBackup="true"
+        android:icon="@drawable/ic_launcher"
+        android:label="@string/app_name"
+        android:theme="@style/AppTheme">
+        <service android:name="com.amap.api.location.APSService" />
+
+        <meta-data
+            android:name="com.amap.api.v2.apikey"
+            android:value="2f96bd99854c25bad867af9676c7ea63" />
+        <meta-data
+            android:name="BUG_HD_SDK_GENERAL_KEY"
+            android:value="82da7c1af25a3d6b045077813ef2032c" />
+
+        <activity
+            android:name="edu.swust.weather.activity.SplashActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.Splash">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name="edu.swust.weather.activity.WeatherActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name="edu.swust.weather.activity.ImageWeatherActivity"
+            android:label="@string/moment"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name="edu.swust.weather.activity.UploadImageActivity"
+            android:label="@string/upload_image"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name="edu.swust.weather.activity.ViewImageActivity"
+            android:label="@string/view_image"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name="edu.swust.weather.activity.ManageCityActivity"
+            android:label="@string/manage_city"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name="edu.swust.weather.activity.AddCityActivity"
+            android:label="@string/add_city"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name="edu.swust.weather.activity.AboutActivity"
+            android:label="@string/about"
+            android:screenOrientation="portrait" />
+    </application>
+
+</manifest>
