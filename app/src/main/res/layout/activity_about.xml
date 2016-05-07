@@ -6,9 +6,87 @@
 
     <include layout="@layout/include_app_bar" />
 
-    <LinearLayout
-        android:id="@+id/ll_fragment_container"
+    <ImageView
+        android:id="@+id/ic_launcher"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_gravity="center"
+        android:layout_marginTop="36dp"
+        android:src="@drawable/ic_launcher" />
+
+    <TextView
+        android:id="@+id/text_lanucher"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="10dp"
+        android:text="小马天气 V 1.0"
+        android:textSize="16sp"/>
+
+    <View
         android:layout_width="match_parent"
+        android:layout_height="1px"
+        android:layout_margin="15dp"
+        android:background="@color/grey" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="14sp"
+        android:text="学生姓名 : 马文清"
+        android:layout_marginLeft="15dp"/>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1px"
+        android:layout_margin="15dp"
+        android:background="@color/grey" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="14sp"
+        android:text="学生学号 : 20121231"
+        android:layout_marginLeft="15dp"/>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1px"
+        android:layout_margin="15dp"
+        android:background="@color/grey" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="14sp"
+        android:text="所在学院 : 计算机科学与技术学院"
+        android:layout_marginLeft="15dp"/>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1px"
+        android:layout_margin="15dp"
+        android:background="@color/grey" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="14sp"
+        android:text="所在班级 : 软件1202"
+        android:layout_marginLeft="15dp"/>
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1px"
+        android:layout_margin="15dp"
+        android:background="@color/grey" />
+
+    <TextView
+        android:layout_width="wrap_content"
         android:layout_height="match_parent"
-        android:orientation="vertical" />
+        android:text="西南科技大学2012级毕业作品\n邮箱：634869042@qq.com"
+        android:layout_gravity="center"
+        android:layout_marginBottom="15dp"
+        android:gravity="bottom"
+        android:textSize="12sp" />
+
 </LinearLayout>
