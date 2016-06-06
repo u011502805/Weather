@@ -18,8 +18,12 @@ import java.util.Calendar;
 
 import edu.swust.weather.R;
 
+/**
+ * 图片工具类
+ */
 public class ImageUtils {
 
+    // 使用关键字判断显示图片
     public static int getIconByCode(Context context, String code) {
         return context.getResources().getIdentifier("ic_weather_icon_" + code, "drawable", context.getPackageName());
     }
@@ -66,6 +70,7 @@ public class ImageUtils {
         }
     }
 
+    // 选择打开相机或者打开相册获取图片
     public static void pickImage(Activity activity, ImageType type) {
         if (!Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
             SnackbarUtils.show(activity, R.string.no_sdcard);
@@ -83,6 +88,7 @@ public class ImageUtils {
         ALBUM
     }
 
+    // 打开相机
     private static void startCamera(Activity activity) {
         String imagePath = FileUtils.getCameraImagePath(activity);
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
@@ -90,6 +96,7 @@ public class ImageUtils {
         activity.startActivityForResult(intent, RequestCode.REQUEST_CAMERA);
     }
 
+    // 打开相册
     private static void startAlbum(Activity activity) {
         Intent intent = new Intent(Intent.ACTION_PICK);
         intent.setType("image/*");
@@ -97,7 +104,7 @@ public class ImageUtils {
     }
 
     /**
-     * 图片自动旋转
+     * 图片自动旋转（在实景编辑界面正常显示图片）
      */
     public static Bitmap autoRotate(String path, Bitmap source) {
         ExifInterface exif = null;
@@ -131,6 +138,7 @@ public class ImageUtils {
         return Bitmap.createBitmap(source, 0, 0, source.getWidth(), source.getHeight(), matrix, true);
     }
 
+    // 将处理后的照片保存到SD卡文件
     public static String save2File(Context context, Bitmap bitmap) {
         String path = FileUtils.getCutImagePath(context);
         FileOutputStream stream = null;
@@ -141,6 +149,7 @@ public class ImageUtils {
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
+        // 保存成功，返回文件路径
         if (bitmap.compress(format, quality, stream)) {
             return path;
         }

@@ -26,6 +26,9 @@ import edu.swust.weather.utils.RequestCode;
 import edu.swust.weather.utils.ScreenUtils;
 import edu.swust.weather.utils.SystemUtils;
 
+/**
+ * 查看单个实景详情
+ */
 public class ViewImageActivity extends BaseActivity implements View.OnClickListener {
     private static final String TAG = "ViewImageActivity";
     @Bind(R.id.iv_weather_image)
@@ -45,8 +48,10 @@ public class ViewImageActivity extends BaseActivity implements View.OnClickListe
     private ImageWeather mImageWeather;
     private ProgressDialog mProgressDialog;
 
+    // 启动本身，这样写将intent步骤写到本类里，其他类只用调用start方法即可
     public static void start(Activity context, ImageWeather imageWeather) {
         Intent intent = new Intent(context, ViewImageActivity.class);
+        // Extras是一个包含city、city_list、image_path、location和image_weather的键值对
         intent.putExtra(Extras.IMAGE_WEATHER, imageWeather);
         context.startActivityForResult(intent, RequestCode.REQUEST_VIEW_IMAGE);
     }
@@ -56,17 +61,22 @@ public class ViewImageActivity extends BaseActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_view_image);
 
+        // getIntent()选择得到什么（得到照片）
         mImageWeather = (ImageWeather) getIntent().getSerializableExtra(Extras.IMAGE_WEATHER);
+        // 设置进度条，防止卡顿
         mProgressDialog = new ProgressDialog(this);
         mProgressDialog.setCancelable(false);
 
+        // getInstance单例从网上获取图片
         ImageLoader.getInstance().loadImage(mImageWeather.getImageUrl(), SystemUtils.getDefaultDisplayOption()
                 , new SimpleImageLoadingListener() {
                     @Override
+                    // 得到图片后，显示图片
                     public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
                         super.onLoadingComplete(imageUri, view, loadedImage);
                         int imageWidth = ScreenUtils.getScreenWidth() - ScreenUtils.dp2px(12) * 2;
                         int imageHeight = (int) ((float) loadedImage.getHeight() / (float) loadedImage.getWidth() * (float) imageWidth);
+                        // 图片的特殊布局下，设置最小让图片显示正常
                         ivWeatherImage.setMinimumHeight(imageHeight);
                         ivWeatherImage.setImageBitmap(loadedImage);
                     }
@@ -77,20 +87,23 @@ public class ViewImageActivity extends BaseActivity implements View.OnClickListe
         tvSay.setText(mImageWeather.getSay());
         tvSay.setVisibility(TextUtils.isEmpty(mImageWeather.getSay()) ? View.GONE : View.VISIBLE);
         tvTag.setText(getTagText(mImageWeather.getTag()));
-        tvTag.setMovementMethod(LinkMovementMethod.getInstance());
-        initTimeAndPraise();
+        tvTag.setMovementMethod(LinkMovementMethod.getInstance());// 设置显示标签颜色
+        initTimeAndPraise();// 显示时间和点赞
     }
 
+    // 为点赞设置监听
     @Override
     protected void setListener() {
         tvPraise.setOnClickListener(this);
     }
 
+    // 显示时间和点赞
     private void initTimeAndPraise() {
         String time = SystemUtils.timeFormat(mImageWeather.getCreatedAt());
         tvTime.setText(getString(R.string.image_time_praise, time, mImageWeather.getPraise()));
     }
 
+    // 监听点赞
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
@@ -100,9 +113,10 @@ public class ViewImageActivity extends BaseActivity implements View.OnClickListe
         }
     }
 
+    // 赞一个
     private void praise() {
-        mProgressDialog.show();
-        mImageWeather.increment("praise");
+        mProgressDialog.show();// 与服务器传送数据防止卡顿
+        mImageWeather.increment("praise");//
         mImageWeather.update(this, new UpdateListener() {
             @Override
             public void onSuccess() {
@@ -123,6 +137,7 @@ public class ViewImageActivity extends BaseActivity implements View.OnClickListe
         });
     }
 
+    // 判断标签，设置不同的颜色
     private Spanned getTagText(String tag) {
         int intColor = R.color.blue_300;
         switch (tag) {

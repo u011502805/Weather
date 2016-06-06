@@ -24,6 +24,18 @@ import java.util.Date;
 import edu.swust.weather.R;
 import edu.swust.weather.model.Weather;
 
+/**
+ * 系统工具类，包含多种系统级方法
+ * getVersionName 获取版本名称
+ * getVersionCode 获取版本代号,以上用于在关于中显示
+ * setRefreshingOnCreate下拉刷新需要延迟，才能显示，不能直接在onCreate()中设置setRefreshing(true)
+ * initAMapLocation 初始化定位并返回(new一个返回给程序用)
+ * getDefaultDisplayOption 一个返回值为DisplayImageOptions的图片加载时显示方式
+ * voiceAnimation 语音动画
+ * voiceText 需要转换成语音的文本信息
+ * timeFormat 时间格式 在实景详情时显示
+ * formatCity 格式化城市定位 在实景天气和获取天气时使用（使用范围不同）
+ */
 public class SystemUtils {
 
     public static String getVersionName(Context context) {
@@ -46,6 +58,9 @@ public class SystemUtils {
         return versionCode;
     }
 
+    // 下拉刷新
+    // 在onCreate直接设置setRefreshing(true)，在刚进入界面时发现那个刷新动画根本没有出来（Google的Bug）
+    // http://www.jianshu.com/p/9340304bf22f/comments/1619618
     public static void setRefreshingOnCreate(final SwipeRefreshLayout refreshLayout) {
         Handler handler = new Handler(Looper.getMainLooper());
         handler.postDelayed(new Runnable() {
@@ -56,8 +71,13 @@ public class SystemUtils {
         }, 200);
     }
 
+    // initAMapLocation初始化定位
     public static AMapLocationClient initAMapLocation(Context context, AMapLocationListener aMapLocationListener) {
+        // 初始化定位
+        // 在主线程中声明AMapLocationClient类对象，需要传Context类型的参数
+        // 推荐用getApplicationConext()方法获取全进程有效的context
         AMapLocationClient aMapLocationClient = new AMapLocationClient(context.getApplicationContext());
+        //设置定位回调监听
         aMapLocationClient.setLocationListener(aMapLocationListener);
         // 初始化定位参数
         AMapLocationClientOption mLocationOption = new AMapLocationClientOption();
@@ -75,20 +95,23 @@ public class SystemUtils {
         mLocationOption.setInterval(2000);
         // 给定位客户端对象设置定位参数
         aMapLocationClient.setLocationOption(mLocationOption);
-        return aMapLocationClient;
+        return aMapLocationClient; // 返回初始化设置好的AMapLocationClient类对象
     }
 
+    // 一个返回值为DisplayImageOptions的图片加载时显示方式
+    // 在查看实景和实景详情界面使用
     public static DisplayImageOptions getDefaultDisplayOption() {
         return new DisplayImageOptions.Builder()
                 .cacheInMemory(true)
                 .cacheOnDisk(true)
                 .bitmapConfig(Bitmap.Config.RGB_565)
-                .showImageForEmptyUri(R.drawable.image_weather_placeholder_small)
-                .showImageOnFail(R.drawable.image_weather_placeholder_small)
-                .showImageOnLoading(R.drawable.image_weather_placeholder_small)
+                .showImageForEmptyUri(R.drawable.image_weather_placeholder_small) //设置链接为空显示图片
+                .showImageOnFail(R.drawable.image_weather_placeholder_small) // 设置加载失败显示图片
+                .showImageOnLoading(R.drawable.image_weather_placeholder_small) //设置正在加载显示图片
                 .build();
     }
 
+    //播放语音时动画
     public static void voiceAnimation(FloatingActionButton fab, boolean start) {
         AnimationDrawable animation = (AnimationDrawable) fab.getDrawable();
         if (start) {
@@ -99,6 +122,7 @@ public class SystemUtils {
         }
     }
 
+    // 语音文本信息
     public static String voiceText(Context context, Weather weather) {
         StringBuilder sb = new StringBuilder();
         int hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
@@ -131,26 +155,33 @@ public class SystemUtils {
         return sb.toString();
     }
 
+    // 时间格式转换（在实景详情时使用）
     public static String timeFormat(String source) {
         SimpleDateFormat sourceSdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Date now = new Date();
         try {
             Date date = sourceSdf.parse(source);
+            // 如果是年份不同，要显示年份
             if (date.getYear() != now.getYear()) {
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
                 return sdf.format(date);
+                // 如果年同，月份不同，要显示月份
             } else if (date.getMonth() != now.getMonth()) {
                 SimpleDateFormat sdf = new SimpleDateFormat("MM-dd HH:mm");
                 return sdf.format(date);
+                // 如果年月同，天不同，先显示年月日
             } else if (date.getDay() != now.getDay()) {
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+                   //判断若是昨天，显示昨天
                 if (sdf.parse(sdf.format(now)).getTime() - sdf.parse(sdf.format(date)).getTime() == DateUtils.DAY_IN_MILLIS) {
                     SimpleDateFormat sdf2 = new SimpleDateFormat("HH:mm");
                     return "昨天 " + sdf2.format(date);
+                    //判断若是不是昨天，直接再显示精确日期
                 } else {
                     SimpleDateFormat sdf2 = new SimpleDateFormat("MM-dd HH:mm");
                     return sdf2.format(date);
                 }
+                //年月天都相同，显示小时、分钟
             } else {
                 SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
                 return sdf.format(date);
@@ -161,10 +192,11 @@ public class SystemUtils {
         return source;
     }
 
+    //格式化城市，获取实景时使用市级城市
     public static String formatCity(String city) {
         return formatCity(city, null);
     }
-
+    //格式化城市，获取天气信息时使用到县级定位
     public static String formatCity(String city, String area) {
         if (!TextUtils.isEmpty(area) && (area.endsWith("市") || area.endsWith("县"))) {
             if (area.length() > 2) {

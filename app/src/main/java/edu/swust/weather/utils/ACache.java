@@ -49,6 +49,12 @@ import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * @author Michael Yang（www.yangfuhai.com） update at 2013.08.07
+ * ASimpleCache 轻量级文件缓存类
+ * 在在调用ACache.get(Context)方法过程中，其实执行了三个get方法
+ * (1)get(Context ctx)->(2)get(Context ctx, String cacheName)->(3)get(File cacheDir, long max_zise, int max_count)
+ * 在（2）中新建了缓存目录，路径为：/data/data/app-package-name/cache/ACache 缓存大小MAX_SIZE和数量MAX_COUNT均由final变量控制。
+ * 其实最终调用（3）获取实例： mInstanceMap的key为缓存目录+每次应用开启的进程id，value为ACache.
+ * http://www.sxt.cn/info-6151-u-7878.html
  */
 public class ACache {
     public static final int TIME_HOUR = 60 * 60;
@@ -58,11 +64,14 @@ public class ACache {
     private static Map<String, ACache> mInstanceMap = new HashMap<String, ACache>();
     private ACacheManager mCache;
 
+    // 实例化应用程序场景缓存
     public static ACache get(Context ctx) {
         return get(ctx, "ACache");
     }
 
+    // 新建缓存目录
     public static ACache get(Context ctx, String cacheName) {
+        // 新建文件夹，文件路径为应用场景缓存路径目录，文件夹名为ACache(new File()也可新建文件，带上后缀即可)
         File f = new File(ctx.getFilesDir(), cacheName);
         return get(f, MAX_SIZE, MAX_COUNT);
     }
@@ -76,9 +85,12 @@ public class ACache {
         return get(f, max_zise, max_count);
     }
 
+    // 获取缓存实例，存入实例map，key为缓存目录+每次应用开启的进程id
     public static ACache get(File cacheDir, long max_zise, int max_count) {
+        // 返回key为缓存目录+每次应用开启的进程id的map的value值，赋给缓存实例manager
+        // 初次运行，mInstanceMap没有任何键值对，所以manager == null。故通过ACache构造方法构造新实例，最后将该实例引用存入mInstanceMap。
         ACache manager = mInstanceMap.get(cacheDir.getAbsoluteFile() + myPid());
-        if (manager == null) {
+        if (manager == null) { // 缓存实例为空时，
             manager = new ACache(cacheDir, max_zise, max_count);
             mInstanceMap.put(cacheDir.getAbsolutePath() + myPid(), manager);
         }
@@ -89,10 +101,11 @@ public class ACache {
         return "_" + android.os.Process.myPid();
     }
 
+    // ACache构造函数 为private私有（所以在其他类里获得实例只能通过get()方法）
     private ACache(File cacheDir, long max_size, int max_count) {
-        if (!cacheDir.exists() && !cacheDir.mkdirs()) {
+        if (!cacheDir.exists() && !cacheDir.mkdirs()) { // 缓存目录不存在并且无法创建时，抛出异常
             throw new RuntimeException("can't make dirs in "
-                    + cacheDir.getAbsolutePath());
+                    + cacheDir.getAbsolutePath()); // 实例化ACacheManager内部类实例
         }
         mCache = new ACacheManager(cacheDir, max_size, max_count);
     }
@@ -141,9 +154,9 @@ public class ACache {
 
     /**
      * 读取 String数据
-     *
-     * @param key
      * @return String 数据
+     * getAsString(String key)方法里首先通过缓存管理器的mCache.get(key)方法获取文件
+     * 然后用Utils.isDue(readString)**判断是否字符串数据到期，未到期返回去除时间信息的字符串内容；到期则移除缓存，返回空
      */
     public String getAsString(String key) {
         File file = mCache.get(key);
@@ -350,7 +363,6 @@ public class ACache {
 
     /**
      * 保存 Serializable数据 到 缓存中
-     *
      * @param key   保存的key
      * @param value 保存的value
      */
@@ -533,9 +545,8 @@ public class ACache {
     }
 
     /**
-     * @author 杨福海（michael） www.yangfuhai.com
-     * @version 1.0
      * @title 缓存管理器
+     * 缓存目录不存在并且无法创建时，抛出异常，否则实例化ACacheManager内部类实例（缓存管理器）。ACacheManager内部类的构造函数如下：
      */
     public class ACacheManager {
         private final AtomicLong cacheSize;
@@ -546,16 +557,18 @@ public class ACache {
                 .synchronizedMap(new HashMap<File, Long>());
         protected File cacheDir;
 
+        // 内部类ACacheManager的构造函数
         private ACacheManager(File cacheDir, long sizeLimit, int countLimit) {
             this.cacheDir = cacheDir;
             this.sizeLimit = sizeLimit;
             this.countLimit = countLimit;
-            cacheSize = new AtomicLong();
-            cacheCount = new AtomicInteger();
+            cacheSize = new AtomicLong(); // 原子类实例cacheSize，不用加锁保证线程安全
+            cacheCount = new AtomicInteger(); //原子类实例cacheCount，不用加锁保证线程安全
             calculateCacheSizeAndCacheCount();
         }
 
         /**
+         * 构造函数得到原子类实例cacheSize和cacheCount，通过calculateCacheSizeAndCacheCount();
          * 计算 cacheSize和cacheCount
          */
         private void calculateCacheSizeAndCacheCount() {

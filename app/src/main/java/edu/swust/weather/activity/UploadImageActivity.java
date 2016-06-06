@@ -33,6 +33,9 @@ import edu.swust.weather.utils.SnackbarUtils;
 import edu.swust.weather.utils.SystemUtils;
 import edu.swust.weather.widget.TagLayout;
 
+/**
+ * 上传编辑实景
+ */
 public class UploadImageActivity extends BaseActivity implements View.OnClickListener {
     private static final String TAG = "UploadImageActivity";
     @Bind(R.id.iv_weather_image)
@@ -49,6 +52,7 @@ public class UploadImageActivity extends BaseActivity implements View.OnClickLis
     private ProgressDialog mProgressDialog;
     private String path;
 
+    // 启动自身Activity
     public static void start(Activity activity, Location location, String path) {
         Intent intent = new Intent(activity, UploadImageActivity.class);
         intent.putExtra(Extras.IMAGE_PATH, path);
@@ -63,6 +67,7 @@ public class UploadImageActivity extends BaseActivity implements View.OnClickLis
 
         path = getIntent().getStringExtra(Extras.IMAGE_PATH);
         Bitmap bitmap = BitmapFactory.decodeFile(path);
+        // 设置编辑界面图片大小
         int imageWidth = ScreenUtils.getScreenWidth() - ScreenUtils.dp2px(12) * 2;
         int imageHeight = (int) ((float) bitmap.getHeight() / (float) bitmap.getWidth() * (float) imageWidth);
         ivWeatherImage.setMinimumHeight(imageHeight);
@@ -94,6 +99,7 @@ public class UploadImageActivity extends BaseActivity implements View.OnClickLis
         btnUpload.setOnClickListener(this);
     }
 
+    // 监听发布按钮
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
@@ -102,11 +108,12 @@ public class UploadImageActivity extends BaseActivity implements View.OnClickLis
                 break;
         }
     }
-
+    // 上传
     private void upload() {
         mProgressDialog.setMessage(getString(R.string.uploading_image));
         mProgressDialog.show();
         final BmobFile file = new BmobFile(new File(path));
+        // 上传缓存的实景Url，添加文字和标签后，将整个文件上传
         file.upload(this, new UploadFileListener() {
             @Override
             public void onSuccess() {
@@ -115,12 +122,14 @@ public class UploadImageActivity extends BaseActivity implements View.OnClickLis
                 imageWeather.setSay(etSay.getText().toString());
                 imageWeather.setTag(tagLayout.getTag());
                 imageWeather.save(UploadImageActivity.this, new SaveListener() {
+                    // 上传成功
                     @Override
                     public void onSuccess() {
                         mProgressDialog.cancel();
                         Toast.makeText(UploadImageActivity.this, getString(R.string.publish_success,
                                 imageWeather.getLocation().getCity()), Toast.LENGTH_SHORT).show();
                         setResult(RESULT_OK);
+                        //有些界面需要finish的，不能显示Snackbar,只能用Toast
                         finish();
                     }
 
@@ -132,11 +141,12 @@ public class UploadImageActivity extends BaseActivity implements View.OnClickLis
                     }
                 });
             }
-
+            // 上传失败
             @Override
             public void onFailure(int i, String s) {
                 Log.e(TAG, "upload image fail. code:" + i + ",msg:" + s);
                 mProgressDialog.cancel();
+                // 弹出消息
                 SnackbarUtils.show(UploadImageActivity.this, getString(R.string.upload_image_fail, s));
             }
         });

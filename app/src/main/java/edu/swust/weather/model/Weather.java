@@ -3,6 +3,7 @@ package edu.swust.weather.model;
 import java.io.Serializable;
 import java.util.List;
 
+// 天气数据
 public class Weather implements Serializable {
     public String status;
     /**

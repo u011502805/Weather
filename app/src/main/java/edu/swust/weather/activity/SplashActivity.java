@@ -28,11 +28,13 @@ public class SplashActivity extends BaseActivity {
     protected void setListener() {
     }
 
+    // 夜间模式
     private void initNightMode() {
         int hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
         WeatherApplication.updateNightMode(hour >= 19 || hour < 7);
     }
 
+    // 启动WeatherActivity
     private void startWeather() {
         Intent intent = new Intent(this, WeatherActivity.class);
         startActivity(intent);

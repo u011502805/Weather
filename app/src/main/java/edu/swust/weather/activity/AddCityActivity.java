@@ -39,6 +39,10 @@ import rx.functions.Action0;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 
+/**
+ * 添加城市
+ *
+ */
 public class AddCityActivity extends BaseActivity implements View.OnClickListener
         , AMapLocationListener, OnItemClickListener {
     private static final String TAG = "AddCityActivity";
@@ -62,9 +66,13 @@ public class AddCityActivity extends BaseActivity implements View.OnClickListene
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_city);
 
-        mAddCityAdapter = new AddCityAdapter();
+        // rvCity是RecyclerView
+        mAddCityAdapter = new AddCityAdapter(); // 使RecyclerView能正常使用
+        // 设置布局管理器
         rvCity.setLayoutManager(new LinearLayoutManager(rvCity.getContext()));
+        // 设置adapter
         rvCity.setAdapter(mAddCityAdapter);
+        // 一种Dialog进度条
         mProgressDialog = new ProgressDialog(this);
         mProgressDialog.setCancelable(false);
 
@@ -72,6 +80,7 @@ public class AddCityActivity extends BaseActivity implements View.OnClickListene
         fetchCityList();
     }
 
+    // 设置监听
     @Override
     protected void setListener() {
         fabLocation.setOnClickListener(this);
@@ -80,25 +89,30 @@ public class AddCityActivity extends BaseActivity implements View.OnClickListene
         rvCity.setOnScrollListener(mScrollListener);
     }
 
+    // 从本地解析JSON数据获取全国城市列表
     private void fetchCityList() {
-        AssetManager assetManager = getAssets();
-        Observable.just(assetManager)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
+        AssetManager assetManager = getAssets(); // AssetManager资源管理器
+        Observable.just(assetManager) // just创建一个发射指定值的Observable(发送程序资源信息)
+                .subscribeOn(Schedulers.io()) // 指定Observable自身在哪个调度器上执行（io线程上处理一些io操作）
+                .observeOn(AndroidSchedulers.mainThread()) // 指定一个观察者在哪个调度器上观察这个Observable
+                // 注册一个动作，当观察者订阅它生成的Observable它就会被调用
                 .doOnSubscribe(new Action0() {
+                    // 设置一个进度条，防止卡顿
                     @Override
                     public void call() {
                         mProgressDialog.setMessage("");
                         mProgressDialog.show();
                     }
                 })
-                .subscribeOn(AndroidSchedulers.mainThread())
+                .subscribeOn(AndroidSchedulers.mainThread()) // 在主线程上执行
+                // map 对原始Observable发送的每一项数据应用一个选择的函数，然后返回一个发送这些结果的Observable。
                 .map(new Func1<AssetManager, String>() {
                     @Override
                     public String call(AssetManager assetManager) {
                         return readJsonFromAssets(assetManager);
                     }
                 })
+                // 指定的允许发送的数据
                 .filter(new Func1<String, Boolean>() {
                     @Override
                     public Boolean call(String s) {
@@ -118,6 +132,8 @@ public class AddCityActivity extends BaseActivity implements View.OnClickListene
                         return cityListEntity.city;
                     }
                 })
+                // 观察者使用subscribe订阅Observable
+                // 提供3个未实现的方法给观察者使用
                 .subscribe(new Subscriber<List<CityListEntity.CityInfoEntity>>() {
                     @Override
                     public void onCompleted() {
@@ -138,6 +154,7 @@ public class AddCityActivity extends BaseActivity implements View.OnClickListene
                 });
     }
 
+    // 显示省份
     private void showProvinceList() {
         Observable.from(mCityList)
                 .subscribeOn(Schedulers.computation())
@@ -176,6 +193,7 @@ public class AddCityActivity extends BaseActivity implements View.OnClickListene
                 });
     }
 
+    // 显示城市
     private void showCityList(final String province) {
         Observable.from(mCityList)
                 .subscribeOn(Schedulers.computation())
@@ -214,6 +232,7 @@ public class AddCityActivity extends BaseActivity implements View.OnClickListene
                 });
     }
 
+    // 显示县
     private void showAreaList(final String city) {
         Observable.from(mCityList)
                 .subscribeOn(Schedulers.computation())
@@ -246,6 +265,7 @@ public class AddCityActivity extends BaseActivity implements View.OnClickListene
                 });
     }
 
+    // 定位信息回调
     @Override
     public void onLocationChanged(AMapLocation aMapLocation) {
         if (aMapLocation != null) {
@@ -265,6 +285,7 @@ public class AddCityActivity extends BaseActivity implements View.OnClickListene
         }
     }
 
+    // 监听自动定位按钮和向上
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
@@ -280,6 +301,7 @@ public class AddCityActivity extends BaseActivity implements View.OnClickListene
         }
     }
 
+    // 添加城市，从列表逐级选择
     @Override
     public void onItemClick(View view, Object data) {
         CityListEntity.CityInfoEntity cityInfo = (CityListEntity.CityInfoEntity) data;
@@ -293,6 +315,7 @@ public class AddCityActivity extends BaseActivity implements View.OnClickListene
         }
     }
 
+    // 滚动视图监听
     private RecyclerView.OnScrollListener mScrollListener = new RecyclerView.OnScrollListener() {
         private boolean isShow = false;
 
@@ -317,6 +340,7 @@ public class AddCityActivity extends BaseActivity implements View.OnClickListene
         }
     };
 
+    // 从资源管理器读取JSON数据
     private String readJsonFromAssets(AssetManager assetManager) {
         try {
             InputStream is = assetManager.open("city.json");
@@ -332,6 +356,7 @@ public class AddCityActivity extends BaseActivity implements View.OnClickListene
         return null;
     }
 
+    // 返回到城市主界面，更新天气
     private void backToWeather(String city) {
         Intent data = new Intent();
         data.putExtra(Extras.CITY, city);
@@ -339,6 +364,7 @@ public class AddCityActivity extends BaseActivity implements View.OnClickListene
         finish();
     }
 
+    // 在选择城市时监听返回键
     @Override
     public void onBackPressed() {
         if (currentType == AddCityAdapter.Type.PROVINCE) {

@@ -21,6 +21,9 @@ import edu.swust.weather.utils.Extras;
 import edu.swust.weather.utils.RequestCode;
 import edu.swust.weather.utils.SnackbarUtils;
 
+/**
+ * 管理城市列表（包括删除城市）
+ */
 public class ManageCityActivity extends BaseActivity implements View.OnClickListener, OnItemClickListener, OnItemLongClickListener {
     @Bind(R.id.rv_city)
     RecyclerView rvCity;
@@ -39,7 +42,9 @@ public class ManageCityActivity extends BaseActivity implements View.OnClickList
         mCityList = (ArrayList<String>) mACache.getAsObject(Extras.CITY_LIST);
 
         mAdapter = new ManageCityAdapter(mCityList);
+        // 设置布局管理器
         rvCity.setLayoutManager(new LinearLayoutManager(rvCity.getContext()));
+        // 设置适配器
         rvCity.setAdapter(mAdapter);
     }
 
@@ -53,12 +58,13 @@ public class ManageCityActivity extends BaseActivity implements View.OnClickList
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
-            case R.id.fab_add:
+            case R.id.fab_add: // 添加城市按钮
                 startActivityForResult(new Intent(this, AddCityActivity.class), RequestCode.REQUEST_CODE);
                 break;
         }
     }
 
+    // 变更当前城市
     @Override
     public void onItemClick(View view, Object data) {
         String city = (String) data;
@@ -72,6 +78,7 @@ public class ManageCityActivity extends BaseActivity implements View.OnClickList
         finish();
     }
 
+    // 长按选择删除
     @Override
     public void onItemLongClick(View view, Object data) {
         final String city = (String) data;
@@ -88,6 +95,7 @@ public class ManageCityActivity extends BaseActivity implements View.OnClickList
                 .show();
     }
 
+    // 删除城市
     private void deleteCity(String city) {
         if (mCityList.size() <= 1) {
             SnackbarUtils.show(fabAdd, R.string.at_least_one);

@@ -13,6 +13,12 @@ import edu.swust.weather.model.CityListEntity;
 import edu.swust.weather.utils.ACache;
 import edu.swust.weather.utils.Extras;
 
+/**
+ * 添加城市适配器（列表管理器）
+ * RecyclerView是一个强大的滑动组件，可以实现瀑布流 http://blog.csdn.net/lmj623565791/article/details/45059587
+ * 通过设置它提供的不同LayoutManager，ItemDecoration , ItemAnimator实现令人瞠目的效果
+ * 同ListView需要一个adapter一样，RecyclerView也需要Adapter才能正常使用
+ *  */
 public class AddCityAdapter extends RecyclerView.Adapter<CityViewHolder> implements View.OnClickListener {
     private List<CityListEntity.CityInfoEntity> mCityList = new ArrayList<>();
     private Type mType;

@@ -39,6 +39,9 @@ import edu.swust.weather.utils.RequestCode;
 import edu.swust.weather.utils.SnackbarUtils;
 import edu.swust.weather.utils.SystemUtils;
 
+/**
+ * 查看实景
+ */
 public class ImageWeatherActivity extends BaseActivity implements View.OnClickListener
         , SwipeRefreshLayout.OnRefreshListener, AMapLocationListener, LoadMoreListener.Listener
         , OnItemClickListener {
@@ -69,16 +72,20 @@ public class ImageWeatherActivity extends BaseActivity implements View.OnClickLi
         setContentView(R.layout.activity_image_weather);
 
         mAdapter = new ImageWeatherAdapter(mImageList);
+        // 加载更多监听
         mLoadMoreListener = new LoadMoreListener(this);
+        // 布局管理器
         rvImage.setLayoutManager(new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL));
+        // 设置适配器
         rvImage.setAdapter(mAdapter);
 
         mQuery.setLimit(QUERY_LIMIT);
         mQuery.order("-createdAt");
-
+        // 获得初始化设置好的AMapLocationClient类对象；启动定位
         mLocationClient = SystemUtils.initAMapLocation(this, this);
         mLocationClient.startLocation();
 
+        // 下拉刷新
         SystemUtils.setRefreshingOnCreate(mRefreshLayout);
     }
 
@@ -91,18 +98,20 @@ public class ImageWeatherActivity extends BaseActivity implements View.OnClickLi
         fabAlbum.setOnClickListener(this);
     }
 
+    // 设置FloatingActionButton默认折叠
     @Override
     protected void onResume() {
         super.onResume();
         famAddPhoto.collapse();
     }
 
+    // 定位成功回调信息
     @Override
     public void onLocationChanged(AMapLocation aMapLocation) {
         if (aMapLocation != null) {
             mLocationClient.stopLocation();
             if (aMapLocation.getErrorCode() == 0 && !TextUtils.isEmpty(aMapLocation.getCity())) {
-                // 定位成功回调信息，设置相关消息
+                // 设置回调相关消息
                 mLocation.setAddress(aMapLocation.getAddress());
                 mLocation.setCountry(aMapLocation.getCountry());
                 mLocation.setProvince(aMapLocation.getProvince());
@@ -126,17 +135,23 @@ public class ImageWeatherActivity extends BaseActivity implements View.OnClickLi
         }
     }
 
+    // 下拉刷新，从起点开始
+    // BmobQuery：http://docs.bmob.cn/document/android/cn/bmob/v3/BmobQuery.html
     @Override
     public void onRefresh() {
-        mQuery.setSkip(0);
+        mQuery.setSkip(0);// 从0开始
+        //  findObjects(Context context,FindCallback callback)  查询多条数据(通常在使用自定义表名的情况下使用此方法)
+        //  应用程序上下文，查询监听器
+        //  FindListener是bmob包的自带的查找监听器
         mQuery.findObjects(this, new FindListener<ImageWeather>() {
             @Override
             public void onSuccess(List<ImageWeather> list) {
                 mImageList.clear();
                 mImageList.addAll(list);
                 mAdapter.notifyDataSetChanged();
-                mRefreshLayout.setRefreshing(false);
-                mLoadMoreListener.setEnableLoadMore(true);
+                mRefreshLayout.setRefreshing(false); // 取消刷新
+                mLoadMoreListener.setEnableLoadMore(true); // 允许加载更多
+                // 设置FloatingActionButton可见
                 famAddPhoto.setVisibility(View.VISIBLE);
             }
 
@@ -149,6 +164,7 @@ public class ImageWeatherActivity extends BaseActivity implements View.OnClickLi
         });
     }
 
+    // 加载更多，从当前位置开始
     @Override
     public void onLoadMore() {
         mQuery.setSkip(mImageList.size());
@@ -158,9 +174,13 @@ public class ImageWeatherActivity extends BaseActivity implements View.OnClickLi
                 mLoadMoreListener.onLoadComplete();
                 if (!list.isEmpty()) {
                     mImageList.addAll(list);
+                    // notifyDataSetChanged()方法通过一个外部的方法控制
+                    // 如果适配器的内容改变时需要强制调用getView来刷新每个Item的内容
+                    // 可以实现动态的刷新列表的功能
                     mAdapter.notifyDataSetChanged();
                 } else {
                     mLoadMoreListener.setEnableLoadMore(false);
+                    // 显示提示消息，相当于Toast
                     SnackbarUtils.show(ImageWeatherActivity.this, R.string.no_more);
                 }
             }
@@ -174,6 +194,7 @@ public class ImageWeatherActivity extends BaseActivity implements View.OnClickLi
         });
     }
 
+    // 监听点击了拍照还是从相册选择
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
@@ -186,12 +207,14 @@ public class ImageWeatherActivity extends BaseActivity implements View.OnClickLi
         }
     }
 
+    // 监听点击哪个实景后，跳转到单个实景详情界面
     @Override
     public void onItemClick(View view, Object data) {
         ImageWeather imageWeather = (ImageWeather) data;
         ViewImageActivity.start(this, imageWeather);
     }
 
+    // 通过不同的requestCode判断是哪个界面返回的参数信息
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -220,11 +243,13 @@ public class ImageWeatherActivity extends BaseActivity implements View.OnClickLi
                         break;
                     }
                 }
+                // 动态刷新
                 mAdapter.notifyDataSetChanged();
                 break;
         }
     }
 
+    // 缩放图片（不能传原图，需要将原图缩放保存到文件，再上传）
     private void compressImage(final String path) {
         File file = new File(path);
         if (!file.exists()) {
